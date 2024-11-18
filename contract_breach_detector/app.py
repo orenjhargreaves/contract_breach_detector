@@ -14,11 +14,15 @@ doc_processor = ContractProcessor()
 
 alum_document = doc_processor.load_document(alum_file_path)
 
-terms_to_extract = {"supplier_name": "",
-                    "contract_number": "",
-                    "delivery_date": "YYYY-MM-DD",
-                    "palette_dimensions": "",
-                    "quantity": "",                 
+terms_to_extract = {"info": {
+                            "supplier_name": "",
+                            "contract_number": "",
+                            },
+                    "details": {
+                                "delivery_date": "YYYY-MM-DD",
+                                "pallet_dimensions": "",
+                                "quantity": "",
+                                },            
                     }
 
 
@@ -31,9 +35,9 @@ ERP_db = DataBase('db/deliveries.json', 'db/items.json')
 # print(contract_db.original_example_query())
 
 breach_detector = DetectBreach(alum_json, ERP_db)
-alum_breach = breach_detector.searchdb()
+alum_ERP = breach_detector.searchdb()
+breach_detector.compare_details(alum_ERP)
 
-print(alum_breach)
 
 
 # print()

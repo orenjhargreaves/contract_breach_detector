@@ -3,6 +3,7 @@ import openai
 import os
 import pickle
 import json
+import hashlib
 
 # extracted_terms_format = {
 #   "contract_details": {
@@ -119,29 +120,72 @@ import json
 
 
 class ContractProcessor:
-    def __init__(self, model: str = "gpt-4o-mini"):
+    def __init__(self, model: str = "gpt-4o-mini", cache_dir: str = "/home/oren/Documents/Python/magentic_poc/contract_breach_detector/cache"):
         self.model = model
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.cache_dir = cache_dir
+        os.makedirs(self.cache_dir, exist_ok=True)  # Ensure the cache directory exists
 
     def load_document(self, filepath: str) -> Document:
+        """Loads document form given filepath. uses docx type Document"""
         return Document(filepath)
+    
+    def _generate_hash(self, text: str) -> str:
+        """
+        Generate a unique hash for the document text and prompt.
+        """
+        return hashlib.sha256(text.encode()).hexdigest()
+
+    def _cache_path(self, hash_key: str) -> str:
+        """
+        Get the file path for the cached response.
+        """
+        return os.path.join(self.cache_dir, f"{hash_key}.pkl")
+
+    def _load_from_cache(self, hash_key: str):
+        """
+        Load a response from the cache if it exists.
+        """
+        cache_file = self._cache_path(hash_key)
+        if os.path.exists(cache_file):
+            with open(cache_file, "rb") as file:
+                return pickle.load(file)
+        return None
+
+    def _save_to_cache(self, hash_key: str, response):
+        """
+        Save a response to the cache.
+        """
+        cache_file = self._cache_path(hash_key)
+        with open(cache_file, "wb") as file:
+            pickle.dump(response, file)
 
     def extract_terms(self, document: Document, terms: json) -> dict:
-        # Example LLM prompt
+        """
+        Extract contract terms from a document using LLM or cache.
+        """
         text = "\n".join([p.text for p in document.paragraphs])
-        # prompt = f"Extract contract terms: returning the answers in the following format {extracted_terms_format} using the following text: {text}"
-        # print(prompt)
+
+        # Generate a hash for the document text
+        query_hash = self._generate_hash(text)
+
+        # Check if the response is cached
+        cached_response = self._load_from_cache(query_hash)
+        if cached_response:
+            print("Loaded response from cache.")
+            return cached_response
+        
         messages = [
                     {"role": "system", "content": f"You are an AI assistant that extracts structured information from documents and outputs it in the JSON format: {terms}"},
                     {"role": "user", "content": f"Extract the key details from the following document and format them as a JSON object:\n\n{text}"}
 ]
 
-        # response = self.client.chat.completions.create(model=self.model, messages=messages)
-        # with open('/home/oren/Documents/Python/magentic_poc/contract_breach_detector/contracts/alum_resonse.pkl', 'wb') as file:
-        #     pickle.dump(response, file)
-        with open('/home/oren/Documents/Python/magentic_poc/contract_breach_detector/contracts/alum_resonse.pkl', 'rb') as file:
-            response = pickle.load(file)
-
+        response = self.client.chat.completions.create(model=self.model, messages=messages)
         
-        return json.loads(response.choices[0].message.content[7:-4])
-        # return response
+        # Parse the response
+        extracted_terms = json.loads(response.choices[0].message.content[7:-4])
+
+        # Cache the response
+        self._save_to_cache(query_hash, extracted_terms)
+        
+        return extracted_terms
