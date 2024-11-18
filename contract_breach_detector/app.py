@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 import os
 
 from contract_processor import ContractProcessor
+from DB_code import DataBase
+from breach_detector import DetectBreach
 
 # Load environment variables from .env file
 load_dotenv()
@@ -12,16 +14,27 @@ doc_processor = ContractProcessor()
 
 alum_document = doc_processor.load_document(alum_file_path)
 
-terms_to_extract = {"What is the item being delivered?": "",
-                    "When is it being delivered": "",
-                    "How much of the item is being delivered": "",
-                    "Are there any late delivery clauses": "",
-                    "Are there any other clauses that incur financial penalties": ""}
+terms_to_extract = {"supplier_name": "",
+                    "contract_number": "",
+                    "delivery_date": "YYYY-MM-DD",
+                    "palette_dimensions": "",
+                    "quantity": "",                 
+                    }
 
 
 alum_json = doc_processor.extract_terms(alum_document, terms_to_extract)
 
-print(alum_json)
+# for i in alum_json.items():
+#     print(i)
+
+ERP_db = DataBase('db/deliveries.json', 'db/items.json')
+# print(contract_db.original_example_query())
+
+breach_detector = DetectBreach(alum_json, ERP_db)
+alum_breach = breach_detector.searchdb()
+
+print(alum_breach)
+
 
 # print()
 

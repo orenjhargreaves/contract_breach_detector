@@ -136,11 +136,11 @@ class ContractProcessor:
                     {"role": "user", "content": f"Extract the key details from the following document and format them as a JSON object:\n\n{text}"}
 ]
 
-        response = self.client.chat.completions.create(model=self.model, messages=messages)
-        with open('/home/oren/Documents/Python/magentic_poc/contract_breach_detector/contracts/alum_resonse.pkl', 'wb') as file:
-            pickle.dump(response, file)
-        # with open('/home/oren/Documents/Python/magentic_poc/contract_breach_detector/contracts/alum_resonse.pkl', 'rb') as file:
-        #     response = pickle.load(file)
+        # response = self.client.chat.completions.create(model=self.model, messages=messages)
+        # with open('/home/oren/Documents/Python/magentic_poc/contract_breach_detector/contracts/alum_resonse.pkl', 'wb') as file:
+        #     pickle.dump(response, file)
+        with open('/home/oren/Documents/Python/magentic_poc/contract_breach_detector/contracts/alum_resonse.pkl', 'rb') as file:
+            response = pickle.load(file)
 
         
         return json.loads(response.choices[0].message.content[7:-4])
