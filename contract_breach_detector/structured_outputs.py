@@ -15,5 +15,6 @@ contract_enforcement = {"info": {
                             "delivery_date": "YYYY-MM-DD",
                             "pallet_dimensions": "",
                             "quantity": "",
+                            "weight": "",
                                 },            
                     }

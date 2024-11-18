@@ -130,11 +130,11 @@ class ContractProcessor:
         """Loads document form given filepath. uses docx type Document"""
         return Document(filepath)
     
-    def _generate_hash(self, text: str) -> str:
+    def _generate_hash(self, raw_text: str) -> str:
         """
         Generate a unique hash for the document text and prompt.
         """
-        return hashlib.sha256(text.encode()).hexdigest()
+        return hashlib.sha256(raw_text.encode()).hexdigest()
 
     def _cache_path(self, hash_key: str) -> str:
         """
@@ -165,20 +165,19 @@ class ContractProcessor:
         Extract contract terms from a document using LLM or cache.
         """
         text = "\n".join([p.text for p in document.paragraphs])
-
-        # Generate a hash for the document text
-        query_hash = self._generate_hash(text)
+        
+        messages = [
+                    {"role": "system", "content": f"You are an AI assistant that extracts structured information from documents and outputs it in the JSON format: {terms}"},
+                    {"role": "user", "content": f"Extract the key details from the following document and format them as a JSON object:\n\n{text}"}
+        ]
+        # Generate a hash for the message
+        query_hash = self._generate_hash(f"{terms}, {text}")
 
         # Check if the response is cached
         cached_response = self._load_from_cache(query_hash)
         if cached_response:
             print("Loaded response from cache.")
             return cached_response
-        
-        messages = [
-                    {"role": "system", "content": f"You are an AI assistant that extracts structured information from documents and outputs it in the JSON format: {terms}"},
-                    {"role": "user", "content": f"Extract the key details from the following document and format them as a JSON object:\n\n{text}"}
-]
 
         response = self.client.chat.completions.create(model=self.model, messages=messages)
         
