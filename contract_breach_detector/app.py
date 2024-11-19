@@ -25,11 +25,22 @@ for i, c in enumerate(test_contracts):
     highlighted_html_contract_file_path = f"{contracts_file_path}/highlighted/{c}.html"
     # print(os.path.exists(provided_contract_file_path))
     doc = doc_processor.load_document(provided_contract_file_path)
+    #print out the answers to the example questions provided
+    exampleQ_responses = doc_processor.extract_terms(doc, structured_outputs.example_questions)
+    for key, value in exampleQ_responses.items():
+        print(f"Q: {key}\nA: {value}")
+    print()
+
+
     doc_structure = doc_processor.extract_terms(doc, terms_to_extract)
     breach_detector = DetectBreach(doc_structure, ERP_db, llm)
     filtered_ERP = breach_detector.searchdb()
     contract_and_delivered = breach_detector.get_comparisons(filtered_ERP)
-    print(contract_and_delivered)
+    # print(contract_and_delivered)
+    for i, statement in enumerate(contract_and_delivered):
+        print(f"{i+1}.  {statement}")
+    print()
+
     breach_detail = breach_detector.analyse_comparisons(contract_and_delivered)
     # print(breach_detail)
     if breach_detail["breached"]:
