@@ -24,7 +24,7 @@ ERP_db = DataBase('db/deliveries.json', 'db/items.json')
 
 # Process each contract
 for i, contract_name in enumerate(test_contracts):
-    print(f"\n-----------------------------------------------\n{contract_name}")
+    print(f"-----------------------------------------------\n{contract_name}")
 
     # Define file paths
     contracts_file_path = os.path.join(base_dir, "contracts")
@@ -67,4 +67,5 @@ for i, contract_name in enumerate(test_contracts):
         doc, fields=["deliver_date", "contract_number", "quantity", "pallet_dimensions"]
     )
     doc_processor.generate_html_highlight(doc, doc_structured_linked, highlighted_html_contract_file_path)
-    print(f"An HTML file with highlighted contract information can be found here: {highlighted_html_contract_file_path}")
+    print(f"An HTML file with highlighted contract information can be found here: {highlighted_html_contract_file_path}\n")
+print(f"-----------------------------------------------\n")

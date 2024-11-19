@@ -76,7 +76,7 @@ class DetectBreach:
                 "content": (
                     "You are an AI assistant tasked with determining whether contractual obligations "
                     "have been breached based on provided comparisons of expected and delivered values. "
-                    "If a delivery_date is early or a greater quantity is delivered than in the contract, "
+                    "If a delivery_date value is early or a greater quantity is delivered than in the contract, "
                     "this is not a breach. If a value is missing, treat it as a breach and state that "
                     "human clarification is required. Your response must be in JSON format as follows: "
                     "{'breached': <True/False>, 'breached_description': <description of the breach>}"
