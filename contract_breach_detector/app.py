@@ -29,7 +29,7 @@ for i, c in enumerate(test_contracts):
     breach_detector = DetectBreach(doc_structure, ERP_db, llm)
     filtered_ERP = breach_detector.searchdb()
     contract_and_delivered = breach_detector.get_comparisons(filtered_ERP)
-    # print(contract_and_delivered)
+    print(contract_and_delivered)
     breach_detail = breach_detector.analyse_comparisons(contract_and_delivered)
     # print(breach_detail)
     if breach_detail["breached"]:

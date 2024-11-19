@@ -41,19 +41,27 @@ class QueryLLM:
     def _extract_json(self, content):
         """
         Extracts and parses JSON content from the OpenAI response.
-        Handles cases where the JSON is wrapped in triple backticks.
+        Handles cases where the JSON is wrapped in triple backticks
+        or uses single quotes instead of double quotes.
         """
         # Regular expression to find JSON content, optionally wrapped in backticks
         json_match = re.search(r"```json\n(.*?)```|({.*})", content, re.DOTALL)
-        
+
         if json_match:
             json_content = json_match.group(1) or json_match.group(2)  # Extract JSON portion
             try:
-                return json.loads(json_content)  # Parse JSON
-            except json.JSONDecodeError as e:
-                print("Error parsing JSON:", e)
-                print("Extracted content:", json_content)
-                raise
+                # Try to parse as valid JSON
+                return json.loads(json_content)
+            except json.JSONDecodeError:
+                print("Attempting to fix JSON with single quotes...")
+                try:
+                    # Handle single-quoted JSON-like content
+                    fixed_content = json_content.replace("'", '"')
+                    return json.loads(fixed_content)
+                except json.JSONDecodeError as e:
+                    print("Error parsing JSON after fixing:", e)
+                    print("Extracted content:", json_content)
+                    raise
         else:
             raise ValueError("No JSON object found in the response content.")
     
