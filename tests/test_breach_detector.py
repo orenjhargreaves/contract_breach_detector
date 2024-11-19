@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
-from contract_breach_detector.contract_breach_detector.breach_detector import DetectBreach
-from contract_breach_detector.contract_breach_detector.DB_code import DataBase
-from contract_breach_detector.contract_breach_detector.query_llm import QueryLLM
+from contract_breach_detector.modules.breach_detector import DetectBreach
+from contract_breach_detector.modules.DB_code import DataBase
+from contract_breach_detector.modules.query_llm import QueryLLM
 
 
 class TestDetectBreach(unittest.TestCase):

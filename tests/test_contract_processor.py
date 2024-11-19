@@ -3,8 +3,8 @@ import os
 import unittest
 from unittest.mock import MagicMock
 from docx import Document
-from contract_breach_detector.contract_breach_detector.contract_processor import ContractProcessor
-from contract_breach_detector.contract_breach_detector.query_llm import QueryLLM
+from contract_breach_detector.modules.contract_processor import ContractProcessor
+from contract_breach_detector.modules.query_llm import QueryLLM
 
 
 class TestContractProcessor(unittest.TestCase):
