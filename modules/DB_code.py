@@ -58,33 +58,3 @@ class DataBase:
         WHERE i.contract_number = '{query_contract_number}';
         """
         return self.query_db(query)
-
-    def original_example_query(self):
-        """
-        Retrieves all items from deliveries where the supplier is 'AluMetals'.
-
-        This is an example query showcasing the capabilities of the database.
-
-        Returns:
-            pandas.DataFrame: A DataFrame containing the details of deliveries 
-                              where the supplier is 'AluMetals'.
-        """
-        query = """
-        SELECT 
-            d.delivery_id, 
-            d.delivery_date, 
-            d.supplier, 
-            i.item_id, 
-            i.material_number, 
-            i.description, 
-            i.quantity
-        FROM 
-            deliveries d
-        JOIN 
-            items i 
-        ON 
-            d.delivery_id = i.delivery_id
-        WHERE 
-            d.supplier = 'AluMetals';
-        """
-        return self.query_db(query)
