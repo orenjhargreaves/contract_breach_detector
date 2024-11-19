@@ -1,11 +1,15 @@
 from dotenv import load_dotenv
 import os
+import sys
 
-from contract_processor import ContractProcessor
-from DB_code import DataBase
-from breach_detector import DetectBreach
-from query_llm import QueryLLM
-import structured_outputs
+# Add the parent directory of this script to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "..")))
+from contract_breach_detector.contract_breach_detector.contract_processor import ContractProcessor
+from contract_breach_detector.contract_breach_detector.DB_code import DataBase
+from contract_breach_detector.contract_breach_detector.breach_detector import DetectBreach
+from contract_breach_detector.contract_breach_detector.query_llm import QueryLLM
+import contract_breach_detector.contract_breach_detector.structured_outputs as structured_outputs
 
 # Load environment variables from .env file
 load_dotenv()
@@ -27,7 +31,7 @@ for i, contract_name in enumerate(test_contracts):
     print(f"-----------------------------------------------\n{contract_name}")
 
     # Define file paths
-    contracts_file_path = os.path.join(base_dir, "contracts")
+    contracts_file_path = os.path.join(base_dir, "contract_breach_detector/contracts")
     provided_contract_file_path = os.path.join(contracts_file_path, "provided", f"{contract_name}.docx")
     highlighted_html_contract_file_path = os.path.join(contracts_file_path, "highlighted", f"{contract_name}.html")
 

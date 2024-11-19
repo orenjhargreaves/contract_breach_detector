@@ -1,6 +1,6 @@
 from docx import Document
-from query_llm import QueryLLM
-import json
+
+from .query_llm import QueryLLM
 
 
 class ContractProcessor:

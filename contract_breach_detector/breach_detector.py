@@ -1,6 +1,5 @@
-from DB_code import DataBase
-from query_llm import QueryLLM
-import json
+from .DB_code import DataBase
+from .query_llm import QueryLLM
 
 class DetectBreach:
     """
