@@ -69,8 +69,14 @@ class QueryLLM:
         """
         cache_file = self._cache_path(hash_key)
         if os.path.exists(cache_file):
-            with open(cache_file, "rb") as file:
-                return pickle.load(file)
+            try:
+                with open(cache_file, "rb") as file:
+                    return pickle.load(file)
+            except (EOFError, pickle.UnpicklingError):
+                # Handle empty or corrupted cache file
+                if self.debug:
+                    print(f"Cache file {cache_file} is corrupted or empty. Deleting...")
+                os.remove(cache_file)
         return None
 
     def _save_to_cache(self, hash_key: str, response):
