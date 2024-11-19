@@ -10,7 +10,7 @@ import structured_outputs
 load_dotenv()
 
 
-test_contracts = ["Copper_contract", "Steel_contract", "Aluminium_contract"]
+test_contracts = ["Copper_contract"]#, "Steel_contract", "Aluminium_contract"]
 doc_processor = ContractProcessor()
 terms_to_extract = structured_outputs.contract_enforcement
 ERP_db = DataBase('db/deliveries.json', 'db/items.json')
@@ -23,4 +23,6 @@ for i, c in enumerate(test_contracts):
     breach_detector = DetectBreach(doc_structure, ERP_db)
     filtered_ERP = breach_detector.searchdb()
     breach_detector.compare_details(filtered_ERP)
+    doc_structured_linked = doc_processor.extract_terms_with_locations(doc, fields = ["deliver_date", "contract_number", "quantity", "pallet_dimensions"])
+    print(doc_structured_linked)
 
