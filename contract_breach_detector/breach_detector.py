@@ -38,6 +38,6 @@ class DetectBreach:
         # print(response) # for debugging
 
         # Parse the response
-        extracted_terms = json.loads(response.choices[0].message.content)
+        # extracted_terms = json.loads(response.choices[0].message.content)
         
-        return extracted_terms
+        return response
