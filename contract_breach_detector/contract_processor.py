@@ -213,3 +213,26 @@ class ContractProcessor:
         self._save_to_cache(query_hash, extracted_terms)
         
         return extracted_terms
+    
+    def generate_html_highlight(self, document: Document, annotations: dict, output_path: str):
+        # Generate text from document
+        text = "\n".join([p.text for p in document.paragraphs])
+        # Sort extracted fields by start_position
+        sorted_fields = sorted(annotations.values(), key=lambda x: int(x['start_position']) if x['start_position'] else float('inf'))
+
+        # Adjust text with HTML tags for highlights
+        offset = 0
+        for field in sorted_fields:
+            if field['value']:  # Skip empty fields
+                start = field['start_position'] + offset
+                end = field['end_position'] + offset
+                text = (
+                    text[:start]
+                    + f'<span style="background-color: yellow;">{text[start:end]}</span>'
+                    + text[end:]
+                )
+                offset += len('<span style="background-color: yellow;"></span>')
+
+        # Save as HTML
+        with open(output_path, "w") as file:
+            file.write(f"<html><body><pre>{text}</pre></body></html>")
