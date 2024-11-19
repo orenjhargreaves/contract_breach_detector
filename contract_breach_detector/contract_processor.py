@@ -192,11 +192,14 @@ class ContractProcessor:
     def extract_terms_with_locations(self, document: Document, fields: list) -> dict:
         text = "\n".join([p.text for p in document.paragraphs]) 
         messages = [
-                    {"role": "system", "content": f"You are a document parser extracting key information from contracts. Analyze the following document and extract the specified fields along with the locations where they were found. The fields are: {fields}. For each field, return a dictionary of the result in this format: {{'field'{{'value': 'value', 'start_position': start, 'end_position': end}}...}}"},
+                    {"role": "system", "content": f"You are a document parser extracting key information from contracts. Analyze the following document and extract the specified fields along with the locations where they were found the 'start_position' must be at the start of the information sumarised by the 'value' and the 'end_position' after. The fields are: {fields}. For each 'field' in fields, return a dictionary of the result in this format: {{'field'{{'value': 'value', 'start_position': start, 'end_position': end}}...}}"},
                     {"role": "user", "content": f"Extract the key details from the following document and format them as described above. do not make up any values. if you are unsure leave the, blank. Any fields you fill, you must reference their start and end locations:\n\n{text}"}
         ]
+
+        key = " ".join(f"{message['role']}: {message['content']}" for message in messages)
+
         # Generate a hash for the message
-        query_hash = self._generate_hash(f"{fields}, {text}")
+        query_hash = self._generate_hash(key)
 
         # Check if the response is cached
         cached_response = self._load_from_cache(query_hash)

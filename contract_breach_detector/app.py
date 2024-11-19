@@ -24,7 +24,7 @@ for i, c in enumerate(test_contracts):
     doc_structure = doc_processor.extract_terms(doc, terms_to_extract)
     breach_detector = DetectBreach(doc_structure, ERP_db)
     filtered_ERP = breach_detector.searchdb()
-    breach_detector.compare_details(filtered_ERP)
+    print(breach_detector.compare_details(filtered_ERP))
     doc_structured_linked = doc_processor.extract_terms_with_locations(doc, fields = ["deliver_date", "contract_number", "quantity", "pallet_dimensions"])
     print(doc_structured_linked)
     doc_processor.generate_html_highlight(doc, doc_structured_linked, highlighted_html_contract_file_path)
