@@ -1,4 +1,5 @@
 from docx import Document
+from query_llm import QueryLLM
 import openai
 import os
 import pickle
@@ -120,45 +121,12 @@ import hashlib
 
 
 class ContractProcessor:
-    def __init__(self, model: str = "gpt-4o-mini", cache_dir: str = "/home/oren/Documents/Python/magentic_poc/contract_breach_detector/cache"):
-        self.model = model
-        self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.cache_dir = cache_dir
-        os.makedirs(self.cache_dir, exist_ok=True)  # Ensure the cache directory exists
+    def __init__(self, llm: QueryLLM):
+        self.llm = llm
 
     def load_document(self, filepath: str) -> Document:
         """Loads document form given filepath. uses docx type Document"""
         return Document(filepath)
-    
-    def _generate_hash(self, raw_text: str) -> str:
-        """
-        Generate a unique hash for the document text and prompt.
-        """
-        return hashlib.sha256(raw_text.encode()).hexdigest()
-
-    def _cache_path(self, hash_key: str) -> str:
-        """
-        Get the file path for the cached response.
-        """
-        return os.path.join(self.cache_dir, f"{hash_key}.pkl")
-
-    def _load_from_cache(self, hash_key: str):
-        """
-        Load a response from the cache if it exists.
-        """
-        cache_file = self._cache_path(hash_key)
-        if os.path.exists(cache_file):
-            with open(cache_file, "rb") as file:
-                return pickle.load(file)
-        return None
-
-    def _save_to_cache(self, hash_key: str, response):
-        """
-        Save a response to the cache.
-        """
-        cache_file = self._cache_path(hash_key)
-        with open(cache_file, "wb") as file:
-            pickle.dump(response, file)
 
     def extract_terms(self, document: Document, terms: json) -> dict:
         """
@@ -167,53 +135,26 @@ class ContractProcessor:
         text = "\n".join([p.text for p in document.paragraphs])
         
         messages = [
-                    {"role": "system", "content": f"You are an AI assistant that extracts structured information from documents and outputs it in the JSON format: {terms}"},
+                    {"role": "system", "content": f"You're an AI assistant that extracts structured information from documents and outputs it in the JSON format: {terms}"},
                     {"role": "user", "content": f"Extract the key details from the following document and format them as a JSON object:\n\n{text}"}
         ]
-        # Generate a hash for the message
-        query_hash = self._generate_hash(f"{terms}, {text}")
+        response = self.llm.query_llm(messages)
 
-        # Check if the response is cached
-        cached_response = self._load_from_cache(query_hash)
-        if cached_response:
-            print("Loaded response from cache.")
-            return cached_response
-
-        response = self.client.chat.completions.create(model=self.model, messages=messages)
-        
         # Parse the response
         extracted_terms = json.loads(response.choices[0].message.content[7:-4])
-
-        # Cache the response
-        self._save_to_cache(query_hash, extracted_terms)
         
         return extracted_terms
     
     def extract_terms_with_locations(self, document: Document, fields: list) -> dict:
         text = "\n".join([p.text for p in document.paragraphs]) 
         messages = [
-                    {"role": "system", "content": f"You are a document parser extracting key information from contracts. Analyze the following document and extract the specified fields along with the locations where they were found the 'start_position' must be at the start of the information sumarised by the 'value' and the 'end_position' after. The fields are: {fields}. For each 'field' in fields, return a dictionary of the result in this format: {{'field'{{'value': 'value', 'start_position': start, 'end_position': end}}...}}"},
-                    {"role": "user", "content": f"Extract the key details from the following document and format them as described above. do not make up any values. if you are unsure leave the, blank. Any fields you fill, you must reference their start and end locations:\n\n{text}"}
+                    {"role": "system", "content": f"You're an AI assistant document parser extracting key information from contracts. Analyze the following document and extract the specified fields along with the locations where they were found the 'start_position' must be at the start of the information sumarised by the 'value' and the 'end_position' after. The fields are: {fields}. For each 'field' in fields, return a dictionary of the result in this format: {{'field'{{'value': 'value', 'start_position': start, 'end_position': end}}...}}"},
+                    {"role": "user", "content": f"Extract the key details from the following document and format them as described above. do not make up any values. if you are unsure leave it like: {{'field'{{'value': '', 'start_position': '', 'end_position': ''}}...}}. Any fields you fill, you must reference their start and end locations:\n\n{text}"}
         ]
+        response = self.llm.query_llm(messages)
 
-        key = " ".join(f"{message['role']}: {message['content']}" for message in messages)
-
-        # Generate a hash for the message
-        query_hash = self._generate_hash(key)
-
-        # Check if the response is cached
-        cached_response = self._load_from_cache(query_hash)
-        if cached_response:
-            print("Loaded response from cache.")
-            return cached_response
-
-        response = self.client.chat.completions.create(model=self.model, messages=messages)
-        
         # Parse the response
         extracted_terms = json.loads(response.choices[0].message.content[7:-4])
-
-        # Cache the response
-        self._save_to_cache(query_hash, extracted_terms)
         
         return extracted_terms
     
