@@ -10,6 +10,7 @@ import structured_outputs
 # Load environment variables from .env file
 load_dotenv()
 
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 test_contracts = ["Copper_contract", "Steel_contract", "Aluminium_contract"]
 llm = QueryLLM(debug=False)
@@ -18,7 +19,8 @@ terms_to_extract = structured_outputs.contract_enforcement
 ERP_db = DataBase('db/deliveries.json', 'db/items.json')
 
 for i, c in enumerate(test_contracts):
-    contracts_file_path = f"/home/oren/Documents/Python/magentic_poc/contract_breach_detector/contracts"
+    print(f"\n -----------------------------------------------\n{c}")
+    contracts_file_path = os.path.join(base_dir, "contracts")
     provided_contract_file_path = f"{contracts_file_path}/provided/{c}.docx"
     highlighted_html_contract_file_path = f"{contracts_file_path}/highlighted/{c}.html"
     # print(os.path.exists(provided_contract_file_path))
@@ -31,9 +33,10 @@ for i, c in enumerate(test_contracts):
     breach_detail = breach_detector.analyse_comparisons(contract_and_delivered)
     # print(breach_detail)
     if breach_detail["breached"]:
-        print(f"{c} has been breached: {breach_detail['breached_description']}\n")
+        print(f"The contract has been breached: {breach_detail['breached_description']}\n")
 
 
     doc_structured_linked = doc_processor.extract_terms_with_locations(doc, fields = ["deliver_date", "contract_number", "quantity", "pallet_dimensions"])
-    print(doc_structured_linked)
+    # print(doc_structured_linked)
     doc_processor.generate_html_highlight(doc, doc_structured_linked, highlighted_html_contract_file_path)
+    print(f"An output html file containing the highlighted contract information used to assess whether the contrace has been breached can be found here: {highlighted_html_contract_file_path}")
