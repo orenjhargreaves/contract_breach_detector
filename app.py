@@ -5,11 +5,11 @@ import sys
 # Add the parent directory of this script to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "..")))
-from contract_breach_detector.contract_breach_detector.contract_processor import ContractProcessor
-from contract_breach_detector.contract_breach_detector.DB_code import DataBase
-from contract_breach_detector.contract_breach_detector.breach_detector import DetectBreach
-from contract_breach_detector.contract_breach_detector.query_llm import QueryLLM
-import contract_breach_detector.contract_breach_detector.structured_outputs as structured_outputs
+from contract_breach_detector.modules.contract_processor import ContractProcessor
+from contract_breach_detector.modules.DB_code import DataBase
+from contract_breach_detector.modules.breach_detector import DetectBreach
+from contract_breach_detector.modules.query_llm import QueryLLM
+import contract_breach_detector.modules.structured_outputs as structured_outputs
 
 # Load environment variables from .env file
 load_dotenv()
