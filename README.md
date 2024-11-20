@@ -22,6 +22,9 @@ The system is meant to provide:
 Other features:
     I added some caching to the system. This hashses the message to the LLM and stores the response so that if the same message is asked, it can provide the local response. This was mostly to reduce costs, both time and money as the response from OpenAI for the fairly long reads was far from instant.
 
+Additional Freatures not yet implemented:
+    I did not have time to get round to pusing all data to an SQL database or deploying to the cloud. I made some progress on structuring my LLM outputs but I would not say that it is perfect yet!
+
 running app.py from the contract_breach_detector directory within a venv that has the libraries installed from requirements.txt should provide an example of the three above tasks. In case there are any unforseen issues I would expect an output that looks like the below:
 ```
 $ python app.py
