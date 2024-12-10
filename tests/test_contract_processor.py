@@ -81,7 +81,7 @@ class TestContractProcessor(unittest.TestCase):
         self.mock_llm.query_llm.assert_called_once()  # Ensure LLM was called
         self.assertEqual(result, mock_response)  # Ensure response matches mock
 
-    def test_generate_html_highlight(self):
+    def test_generate_html_highlight_from_fuzz(self):
         """
         Tests the generate_html_highlight method to ensure it correctly generates an HTML file with highlights.
         """
@@ -89,8 +89,13 @@ class TestContractProcessor(unittest.TestCase):
         doc = Document()
         doc.add_paragraph("This is a test contract with highlighted fields.")
 
+        #self.annotations -> form for the fuzzy highlight
+        fuzzy_annotations = []
+        for k,v in self.test_annotations.items():
+            fuzzy_annotations.append((int(v['start_position']), int(v['end_position'])))
+
         # Run the method
-        self.processor.generate_html_highlight(doc, self.test_annotations, self.test_html_output_path)
+        self.processor.generate_html_highlight_from_fuzz(doc, fuzzy_annotations, self.test_html_output_path)
 
         # Verify the HTML file is created
         self.assertTrue(os.path.exists(self.test_html_output_path))

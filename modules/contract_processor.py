@@ -1,4 +1,5 @@
 from docx import Document
+from typing import List, Tuple
 
 from .query_llm import QueryLLM
 
@@ -132,6 +133,34 @@ class ContractProcessor:
                     + text[end:]
                 )
                 offset += len('<span style="background-color: yellow;"></span>')
+
+        # Save the highlighted text as an HTML file
+        with open(output_path, "w") as file:
+            file.write(f"<html><body><pre>{text}</pre></body></html>")
+
+    def generate_html_highlight_from_fuzz(self, document: Document, list_of_anno: List[Tuple[int,int]], output_path: str):
+        """
+        Generates an HTML file with highlighted terms from the document.
+
+        Args:
+            document (Document): A `Document` object representing the contract.
+            annotations (dict): A dictionary of extracted fields with start and end positions.
+            output_path (str): The file path to save the generated HTML file.
+        """
+        # Combine all paragraphs into a single string
+        text = "\n".join([p.text for p in document.paragraphs])
+        
+        # Sort annotations by start position to ensure proper order
+        list_of_anno = sorted(list_of_anno, key=lambda x: x[0])
+
+        # Highlight extracted fields in the text
+        offset = 0  # Tracks the additional length added by the HTML tags
+        for start, end in list_of_anno:
+            start += offset
+            end += offset
+            highlight = f'<span style="background-color: yellow;">{text[start:end]}</span>'
+            text = text[:start] + highlight + text[end:]
+            offset += len(highlight) - (end - start)
 
         # Save the highlighted text as an HTML file
         with open(output_path, "w") as file:

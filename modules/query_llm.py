@@ -159,7 +159,7 @@ class QueryLLM:
             return cached_output
 
         # Send the query to the LLM
-        response = self.client.chat.completions.create(model=self.model, messages=messages)
+        response = self.client.chat.completions.create(model=self.model, messages=messages, temperature=0)
 
         if self.debug:
             print("LLM Response:", response)

@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 import sys
+from docx import Document
 
 # Add the parent directory of this script to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -10,6 +11,7 @@ from contract_breach_detector.modules.DB_code import DataBase
 from contract_breach_detector.modules.breach_detector import DetectBreach
 from contract_breach_detector.modules.query_llm import QueryLLM
 import contract_breach_detector.modules.structured_outputs as structured_outputs
+from contract_breach_detector.modules.evidence_search import EvidenceSearch
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,11 +23,58 @@ base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 test_contracts = ["Copper_contract", "Steel_contract", "Aluminium_contract"]
 
 # Initialize the LLM, document processor, and database
-llm = QueryLLM(debug=False)
+llm = QueryLLM(debug=True)
 doc_processor = ContractProcessor(llm)
 terms_to_extract = structured_outputs.contract_enforcement
 ERP_db = DataBase('db/deliveries.json', 'db/items.json')
+evidence_search = EvidenceSearch(llm)
 
+for i, contract_name in enumerate([test_contracts[0]]):
+
+    # Define file paths
+    contracts_file_path = os.path.join(base_dir, "contract_breach_detector/contracts")
+    provided_contract_file_path = os.path.join(contracts_file_path, "provided", f"{contract_name}.docx")
+    highlighted_html_contract_file_path = os.path.join(contracts_file_path, "highlighted", f"{contract_name}.html")
+
+    # Load the provided contract
+    doc = doc_processor.load_document(provided_contract_file_path)
+
+    test = evidence_search.find_exact_text(" contract number1415738", doc)
+
+    print(test)
+
+    s,l,r = evidence_search.find_best_fuzzy_match(test['evidence'], doc)
+
+    print(s,l,r)
+
+    doc_processor.generate_html_highlight_from_fuzz(doc, [(l,r)], highlighted_html_contract_file_path)
+
+    # test_doc = Document()
+    # test_doc.add_paragraph("This is a test contract. specific piece of information to be returned: password123. Rest of the test contract")
+
+    # test2 = evidence_search.find_exact_text(text="specific piece of information: password123", document=test_doc)
+
+    # print(test2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#commenting out below while testing evidence_search
+"""
 # Process each contract
 for i, contract_name in enumerate(test_contracts):
     print(f"-----------------------------------------------\n{contract_name}")
@@ -73,3 +122,4 @@ for i, contract_name in enumerate(test_contracts):
     doc_processor.generate_html_highlight(doc, doc_structured_linked, highlighted_html_contract_file_path)
     print(f"An HTML file with highlighted contract information can be found here: {highlighted_html_contract_file_path}\n")
 print(f"-----------------------------------------------\n")
+"""
