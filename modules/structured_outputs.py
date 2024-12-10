@@ -18,6 +18,13 @@ contract_enforcement = {"info": {
                             "weight": "",
                                 },            
                     }
+contract_enforcement_mk2 = {"supplier_name": "",
+                            "contract_number": "",
+                            "delivery_date": "YYYY-MM-DD",
+                            "pallet_dimensions": "",
+                            "quantity": "",
+                            "weight": "",
+                            },            
 
 db_cols = {
         "item_id": 304,

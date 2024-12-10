@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 from docx import Document
 from contract_breach_detector.modules.contract_processor import ContractProcessor
 from contract_breach_detector.modules.query_llm import QueryLLM
+from contract_breach_detector.modules.evidence_search import EvidenceSearch
 
 
 class TestContractProcessor(unittest.TestCase):
@@ -18,7 +19,8 @@ class TestContractProcessor(unittest.TestCase):
         and creating a ContractProcessor instance.
         """
         self.mock_llm = MagicMock(spec=QueryLLM)
-        self.processor = ContractProcessor(self.mock_llm)
+        self.mock_evidence_search = MagicMock(spec=EvidenceSearch)
+        self.processor = ContractProcessor(self.mock_llm, self.mock_evidence_search)
         self.test_document_path = os.path.join(os.path.dirname(__file__), "test_data", "test_contract.docx")
         self.test_html_output_path = os.path.join(os.path.dirname(__file__), "test_data", "highlighted_contract.html")
         self.test_annotations = {

@@ -1,7 +1,10 @@
 
 from .query_llm import QueryLLM
 from docx import Document
-from rapidfuzz import process, fuzz
+from rapidfuzz import process, fuzz, distance
+from difflib import SequenceMatcher
+from fuzzysearch import find_near_matches
+from typing import Tuple
 
 class EvidenceSearch:
     """
@@ -31,8 +34,7 @@ class EvidenceSearch:
                 "role": "system",
                 "content": (
                     "You are an AI assistent that when passed in a text string you will search the given"
-                    "document and return the exact wording from the document. include required context"
-                    "around the specific text, provided it forms a continuous string exactly as found in the document"
+                    "document for the relavent information and return the exact wording from the document."
                     "in the documentThe input from the user will come in the form:"
                     "Document <document text>"
                     "text to evidence: <text>"
@@ -52,7 +54,6 @@ class EvidenceSearch:
                 ),
             },
         ]
-        #removed from content: If you can not find any" "relavent text return {'evidence': 'None'}.
 
         # Query the LLM
         response = self.llm.query_llm(messages)
@@ -75,6 +76,67 @@ class EvidenceSearch:
             start_index = document_text.find(text)
             if start_index != -1:
                 end_index = start_index + len(text)
+            else:
+                end_index = -1
             return score, start_index, end_index
         else:
             return None
+        
+    def find_best_match_in_document(self, text: str, document: Document, threshold=50)-> Tuple[str, int, int, int]:
+        """
+        splitting find_best_fuzzy_match to just find the match here.
+        Args:
+            text (str): the text to find in the document
+            document (Document): the document in which to find text
+        Returns:
+            (matched_text, similarity_score, start_index, end_index) where start_index and end_index are the positions of matched_text in the document
+        """
+        document_text = "\n".join([p.text for p in document.paragraphs])
+        # print(document_text)
+        best_match = process.extractOne(text, document_text, scorer=fuzz.token_set_ratio, score_cutoff=threshold)
+
+        if best_match:
+            matched_text, similarity_score, _ = best_match
+            start_index = document_text.find(matched_text)
+            end_index = start_index + len(matched_text)
+            return (matched_text, similarity_score, start_index, end_index)
+        else:
+            return (None, None,None, None)
+    
+    def calculate_levenshtein_distance(text:str, document_text:str)->float:
+        """
+        Takes two matching pieces of text and calculates the Levenshtein distance between them.
+        Args:
+            text (str): the text to find in the document
+            document_text (str): the best matched text in the document
+        """
+        levenshtein_distance = distance.Levenshtein.distance(text, document_text)
+        ld_score = (max(len(text), len(document_text)) - levenshtein_distance)/max(len(text), len(document_text))
+        return ld_score
+    
+    def find_best_match_in_document_v2(self, text: str, document: Document, threshold=50)-> Tuple[str, float, int, int]:
+        """
+        splitting find_best_fuzzy_match to just find the match here.
+        Args:
+            text (str): the text to find in the document
+            document (Document): the document in which to find text
+        Returns:
+            (matched_text, similarity_score, start_index, end_index) where start_index and end_index are the positions of matched_text in the document
+        """
+        document_text = "\n".join([p.text for p in document.paragraphs])
+        # print(document_text)
+        # best_match = process.extractOne(text, document_text, scorer=fuzz.token_set_ratio, score_cutoff=threshold)
+        best_match = find_near_matches(text, document_text, max_l_dist=max(2, int(len(text)*0.5)))
+        if len(best_match)!= 0:
+            similarity_score = (len(text) - best_match[0].dist)/len(text)
+            return (best_match[0].matched, similarity_score, best_match[0].start, best_match[0].end)
+        else:
+            return (None, None, None, None)
+
+        # if best_match:
+        #     matched_text, similarity_score, _ = best_match
+        #     start_index = document_text.find(matched_text)
+        #     end_index = start_index + len(matched_text)
+        #     return (matched_text, similarity_score, start_index, end_index)
+        # else:
+        #     return (None, None,None, None)

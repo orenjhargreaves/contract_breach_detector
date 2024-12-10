@@ -2,6 +2,7 @@ from docx import Document
 from typing import List, Tuple
 
 from .query_llm import QueryLLM
+from .evidence_search import EvidenceSearch
 
 
 class ContractProcessor:
@@ -13,7 +14,7 @@ class ContractProcessor:
         llm (QueryLLM): An instance of the LLM interface for querying and extracting data.
     """
 
-    def __init__(self, llm: QueryLLM):
+    def __init__(self, llm: QueryLLM, evidence_search: EvidenceSearch):
         """
         Initializes the ContractProcessor class.
 
@@ -21,6 +22,7 @@ class ContractProcessor:
             llm (QueryLLM): The LLM instance for querying and data extraction.
         """
         self.llm = llm
+        self.evidence_search = evidence_search
 
     def load_document(self, filepath: str) -> Document:
         """
@@ -156,6 +158,8 @@ class ContractProcessor:
         # Highlight extracted fields in the text
         offset = 0  # Tracks the additional length added by the HTML tags
         for start, end in list_of_anno:
+            if start == -1 & end == -1:
+                continue
             start += offset
             end += offset
             highlight = f'<span style="background-color: yellow;">{text[start:end]}</span>'
@@ -165,3 +169,5 @@ class ContractProcessor:
         # Save the highlighted text as an HTML file
         with open(output_path, "w") as file:
             file.write(f"<html><body><pre>{text}</pre></body></html>")
+
+    # def check_extracted_terms(self, )

@@ -23,31 +23,62 @@ base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 test_contracts = ["Copper_contract", "Steel_contract", "Aluminium_contract"]
 
 # Initialize the LLM, document processor, and database
-llm = QueryLLM(debug=True)
-doc_processor = ContractProcessor(llm)
+llm = QueryLLM(debug=False)
+evidence_search = EvidenceSearch(llm)
+doc_processor = ContractProcessor(llm, evidence_search)
 terms_to_extract = structured_outputs.contract_enforcement
 ERP_db = DataBase('db/deliveries.json', 'db/items.json')
-evidence_search = EvidenceSearch(llm)
 
 for i, contract_name in enumerate([test_contracts[0]]):
-
+    print(f"-----------------------------------------------\n")
     # Define file paths
     contracts_file_path = os.path.join(base_dir, "contract_breach_detector/contracts")
     provided_contract_file_path = os.path.join(contracts_file_path, "provided", f"{contract_name}.docx")
-    highlighted_html_contract_file_path = os.path.join(contracts_file_path, "highlighted", f"{contract_name}.html")
+    highlighted_html_contract_file_path = os.path.join(contracts_file_path, "highlighted_v2", f"{contract_name}.html")
 
     # Load the provided contract
     doc = doc_processor.load_document(provided_contract_file_path)
 
-    test = evidence_search.find_exact_text(" contract number1415738", doc)
+    # Extract terms with locations and generate an HTML-highlighted contract
+    doc_structured = doc_processor.extract_terms(doc, terms_to_extract)
 
-    print(test)
+    print(doc_structured)
 
-    s,l,r = evidence_search.find_best_fuzzy_match(test['evidence'], doc)
+    to_highlight = []
+    fuzzy_findings = {}
+    for key,values in doc_structured.items():
+        for k, v in values.items():
+            # print("debug")
+            exact_text = evidence_search.find_exact_text(f"{k}, {v}", doc)
+            print(exact_text)
+            # print(type(exact_text))
+            if exact_text['evidence']=='':
+                to_highlight.append((-1,-1))
+                fuzzy_findings[k] = [exact_text['evidence'], -1, -1, -1]
+            else:
+                print("text goingin to fuzzysearch:", exact_text['evidence'])
+                ld,l,r = evidence_search.find_best_fuzzy_match(exact_text['evidence'], doc)
+                to_highlight.append((l,r))
+                fuzzy_findings[k] = [exact_text['evidence'], ld,l,r]
+        
+    # print("to highlight for", contract_name, " : ",to_highlight)
+    print()
+    for k,v in fuzzy_findings.items():
+        print(f"{k} evidence: {v}")
 
-    print(s,l,r)
+    doc_processor.generate_html_highlight_from_fuzz(doc, to_highlight, highlighted_html_contract_file_path)
 
-    doc_processor.generate_html_highlight_from_fuzz(doc, [(l,r)], highlighted_html_contract_file_path)
+    print(f"\nAn HTML file with highlighted contract information can be found here: {highlighted_html_contract_file_path}\n")
+    print(f"-----------------------------------------------\n")
+    # test = evidence_search.find_exact_text(" contract number1415738", doc)
+
+    # print(test)
+
+    # s,l,r = evidence_search.find_best_fuzzy_match(test['evidence'], doc)
+
+    # print(s,l,r)
+
+    # doc_processor.generate_html_highlight_from_fuzz(doc, [(l,r)], highlighted_html_contract_file_path)
 
     # test_doc = Document()
     # test_doc.add_paragraph("This is a test contract. specific piece of information to be returned: password123. Rest of the test contract")
@@ -115,10 +146,7 @@ for i, contract_name in enumerate(test_contracts):
     if breach_detail["breached"]:
         print(f"The contract has been breached: {breach_detail['breached_description']}\n")
 
-    # Extract terms with locations and generate an HTML-highlighted contract
-    doc_structured_linked = doc_processor.extract_terms_with_locations(
-        doc, fields=["deliver_date", "contract_number", "quantity", "pallet_dimensions"]
-    )
+    
     doc_processor.generate_html_highlight(doc, doc_structured_linked, highlighted_html_contract_file_path)
     print(f"An HTML file with highlighted contract information can be found here: {highlighted_html_contract_file_path}\n")
 print(f"-----------------------------------------------\n")
