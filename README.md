@@ -1,31 +1,33 @@
 # Backend system that takes in contracts and compares to ERP data.
 
-The system is meant to provide:
+The system is designed to provide:
 
-1. Document Question and Answer.
-    This works pretty well currently with an example being run for the following questions in app.py:
-    • What is the item being delivered?
-    • When is it being delivered?
-    • How much of the item is being delivered?
-    • Are there any late delivery clauses?
-    • Are there any other clauses that incur financial penalties? 
+1. Document Question and Answer
+    This works pretty well currently, with an example being run for the following questions in app.py:
+        - What is the item being delivered?
+        - When is it being delivered?
+        - How much of the item is being delivered?
+        - Are there any late delivery clauses?
+        - Are there any other clauses that incur financial penalties?
+
     The responses generated seemed reasonable and fairly accurate.
 
-2. Database Retrieval and Breach detection
-    I have struggled a little bit with this. I think primarily due to my interfacing with the contracts not being standardised enough such that I struggled to get a consistent response in a JSON format that allowed me to query the database well. A potential way around this would be to get the contract ID from the contract, lookup the deliverables and then input that as a prompt to the LLM along with the contract again in order to check that the requirements had been met. I think this would be more likely to work however I wanted to move on to the final requirement and hence did not get onto this.
+2. Database Retrieval and Breach Detection
+    I have struggled a little bit with this, primarily due to my interfacing with the contracts not being standardised enough. This meant I struggled to get a consistent response in a JSON format that allowed me to query the database effectively. A potential way around this would be to get the contract ID from the contract, look up the deliverables, and then input that as a prompt to the LLM along with the contract again to check if the requirements had been met. I think this would be more likely to work; however, I wanted to move on to the final requirement and hence did not get to this.
 
-    I focussed mainly on the factors in the database which I know to be different in the contracts of the examples I was given, retrieving values representing for example the delivery date or palette size which could then be directly compared to the database by filtering by contract number and joining the deliveries and items views. These comparisons are then fed into an LLM in order for it to provide an output saying whether the contract has been breached, stating which areas have not been met and highlighting areas where the system was unable to find in the contract the correct value for and hence wanting a human in the loop to double check.
+    I focused mainly on the factors in the database that I know to differ between the example contracts I was given. For instance, retrieving values such as the delivery date or pallet size, which could then be directly compared to the database by filtering by contract number and joining the deliveries and items views. These comparisons are then fed into an LLM, which provides an output indicating whether the contract has been breached, stating which areas have not been met and highlighting where the system could not find the correct value in the contract, requiring human intervention.
 
-3. Action tracking
-    I was able to create a system that fairly nicely applies annotations to the contract, outputting a .html of the contract with highlights. There are current issues whereby the structured response from the LLM which contains the locations of the data which is used in the database retrieval do not accurately line up with the document and, again, I ran out of time to engineer the system to work better. It seems to be more reliable with some bits of data such as the contract number which seemed to be commonly at the start of the document so perhaps it is an issue with the technique I was using.
+3. Action Tracking
+    I was able to create a system that fairly nicely applies annotations to the contract, outputting a .html version of the contract with highlights. There are current issues where the structured response from the LLM, which contains the locations of the data used in database retrieval, does not align accurately with the document. Again, I ran out of time to engineer the system to work better. It seems more reliable with some data, such as the contract number, which is commonly at the start of the document, so perhaps it is an issue with the technique I was using.
 
-Other features:
-    I added some caching to the system. This hashses the message to the LLM and stores the response so that if the same message is asked, it can provide the local response. This was mostly to reduce costs, both time and money as the response from OpenAI for the fairly long reads was far from instant.
+Other Features
+    I added some caching to the system. This hashes the message sent to the LLM and stores the response so that if the same message is asked again, it can provide the local response. This was primarily to reduce costs, both in terms of time and money, as the response from OpenAI for the fairly long reads was far from instant.
 
-Additional Freatures not yet implemented:
-    I did not have time to get round to pusing all data to an SQL database or deploying to the cloud. I made some progress on structuring my LLM outputs but I would not say that it is perfect yet!
+Additional Features Not Yet Implemented
+    I did not have time to push all data to an SQL database or deploy the system to the cloud. I made some progress on structuring my LLM outputs, but I would not say it is perfect yet!
 
-running app.py from the contract_breach_detector directory within a venv that has the libraries installed from requirements.txt should provide an example of the three above tasks. In case there are any unforseen issues I would expect an output that looks like the below:
+Running app.py from the contract_breach_detector directory within a venv that has the libraries installed from requirements.txt should provide an example of the three tasks above. In case there are any unforeseen issues, I would expect an output that looks like the below:
+
 ```
 $ python app.py
         -----------------------------------------------
